@@ -1,0 +1,586 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<EventGhost Version="1722" Guid="{1F8D7CC0-BD40-4D41-B95F-068C818B1B90}" Time="1483146257.4">
+    <Autostart Name="Autostart" Expanded="True">
+        <Plugin Identifier="Webserver" Guid="{E4305D8E-A3D3-4672-B06E-4EA1F0F6C673}" File="Webserver">
+            gAIoWAQAAABIVFRQcQBLUVglAAAAQzpcVXNlcnNcZHVuc2FfMDAwXERlc2t0b3BcQmVuY2htYXJrc3EBWAAAAABxAmgCaAJ9cQOJWAEAAAAscQRYAgAAADs7cQVoAmgCiHRxBi4=
+        </Plugin>
+        <Plugin Identifier="BroadcastListener" Guid="{5E8DA56B-24AC-4092-9521-169343C5171C}" File="Broadcaster">
+            gAIoWAkAAABCcm9hZGNhc3RxAFgPAAAAMjU1LjI1NS4yNTUuMjU1cQFNwyKJWAAAAABxAlUNMTkyLjE2OC4zMS4xNXEDdHEELg==
+        </Plugin>
+        <Plugin Identifier="LimitlessLED" Guid="LimitlessLED" File="LimitlessLED">
+            gAIoWA4AAAAxOTIuMTY4LjMxLjIwM3EAWAAAAABxAU3DIol0cQIu
+        </Plugin>
+        <Plugin Identifier="miLight2" Guid="miLight controller" File="miLight controller">
+            gAJYDgAAADE5Mi4xNjguMzEuMjAzcQBNwyJHP7mZmZmZmZqHcQEu
+        </Plugin>
+        <Plugin Identifier="VLC" Guid="{02929D1C-7567-414C-84D1-F8D71D6FD7B3}" File="VLC">
+            gAJYCQAAAGxvY2FsaG9zdHEATdIEiIdxAS4=
+        </Plugin>
+        <Action>
+            EventGhost.PythonScript(u"import milight\ncontroller = milight.MiLight({'host': '192.168.31.203', 'port': 8899}, wait_duration=0) #Create a controller with 0 wait between commands\nlight = milight.LightBulb(['rgbw', 'white', 'rgb']) #Can specify which types of bulbs to use\ncontroller.send(light.white(4))\n#controller.send(light.brightness(100, 4))\ncontroller.send(light.on(4)) # Turn on group 1 lights\ncontroller.send(light.warmness(100, 4))\ncontroller.send(light.night(4))")
+        </Action>
+        <Action Name="Disco Mode Code" Enabled="False">
+            EventGhost.PythonScript(u'import milight\ncontroller = milight.MiLight({\'host\': \'192.168.31.203\', \'port\': 8899}, wait_duration=0) #Create a controller with 0 wait between commands\nlight = milight.LightBulb([\'rgbw\', \'white\', \'rgb\']) #Can specify which types of bulbs to use\n""" Party (Disco) -\n    There are 10 party modes available for rgbw and rgb bulbs.\n    (There are supposed to be 20 modes for rgb, but I don\'t have these bulbs to test\n        and get the appropriate descriptions. And these bulbs aren\'t sold anymore)\n    To get an idea of all the possible modes, refer to milight.rgbw.PARTIES or milight.rgb.PARTIES """\n\n"""PARTIES = {\n    \'white\': 1,\n    \'rainbow_swirl\': 2,\n    \'white_fade\': 3,\n    \'rgbw_fade\': 4,\n    \'rainbow_jump\': 5,\n    \'random\': 6,\n    \'red_twinkle\': 7,\n    \'green_twinkle\': 8,\n    \'blue_twinkle\': 9\n}"""\ncontroller.send(light.party(\'red_twinkle\', 1)) # Set group 1 to random party (disco) mode')
+        </Action>
+        <Action Name="Color Change Code" Enabled="False">
+            EventGhost.PythonScript(u'import eg\nimport milight\ncontroller = milight.MiLight({\'host\': \'192.168.31.203\', \'port\': 8899}, wait_duration=0) #Create a controller with 0 wait between commands\nlight = milight.LightBulb([\'rgbw\', \'white\', \'rgb\']) #Can specify which types of bulbs to use\n#controller.send(light.on(1)) # Turn on group 1 lights\n#controller.send(light.all_on()) # Turn on all lights, equivalent to light.on(0)\ndef hex_to_rgb(value):\n        lv = len(value)\n        return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))\n\n""" Colors -\n    light.color() takes a hue value 0-255\n    this hue can be derived from several helper functions as follows:\n    milight.color_from_hls(0.5, 0.5, 0.5)\n    milight.color_from_rgb(255, 0, 0)\n    milight.color_from_hex(\'#00ff00\') """\n\n\nSuffSplit = eg.event.suffix.split(\'.\')\nprint SuffSplit\nif "color" in SuffSplit:\n    hexcolor = eg.event.payload[0]\n    rgbcolor = hex_to_rgb(hexcolor)           #==&gt; (255, 255, 255)\n    print hexcolor\n    print rgbcolor\n    command = controller.send(light.color(milight.color_from_rgb(*rgbcolor), 1))\n    print command\n    controller.send(light.color(milight.color_from_rgb(*rgbcolor), 1))\n    #controller.send(light.partay(2, 1))\n')
+        </Action>
+        <Action Name="On/Off and Dimming Code" Enabled="False">
+            EventGhost.PythonScript(u'import eg\nimport ledcontroller\nled = ledcontroller.LedController("192.168.31.203")\nb = "set_brightness"\nw = "set_color"\ny = "on"\nq = "off"\nx = "1"\nz = "led."\nSuffSplit = eg.event.suffix.split(\'.\')\nprint SuffSplit\nif "Fan" in SuffSplit:\n    x = "1"\nelif "Kitchen Lights" in SuffSplit:\n    x = "2"\nelif "Kitchen Floor Lights" in SuffSplit:\n    x = "3"\nif "on" in SuffSplit:\n    mycommand = z + y +"(" + (x) + ")"\n    exec mycommand\n    print mycommand\nelif "off" in SuffSplit:\n    mycommand = z + q +"(" + (x) + ")"\n    exec mycommand\n    print mycommand\nelif "level" in SuffSplit:\n    level = eg.event.payload[0] \n    mycommand = z + b + "("  +  level +  ", " + x + ")"\n    exec mycommand\n    print mycommand\n')
+        </Action>
+    </Autostart>
+    <Macro Name="MilLight Automation Script" Expanded="True">
+        <Event Name="HTTP.*" />
+        <Action Name="MiLight Code">
+            EventGhost.PythonScript(u'import eg\nimport time\nimport milight\nimport datetime\n\n#DATE AND TIME\n#Get the current year, month, day, hour, minute and second -- now.year, now.month, now.day, now.hour, now.minute, now.second\nnow = datetime.datetime.now()   \n#Print date and time.\nthedatetime = "%s/%s/%s - %s:%s:%s" % (now.month, now.day, now.year, now.hour, now.minute, now.second)\nprint thedatetime\n\n#Change the incoming hex color value to rgb format\ndef hex_to_rgb(value):\n        lv = len(value)\n        return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))\n\n\n\n\n#Check current time and set warmness level for CW/WW lights.\ndef time_level(warmlevel):\n    if now.hour == 13:\n        warmlevel = "10"\n    elif (now.hour == 14):\n        warmlevel = "20"\n    elif (now.hour == 15):\n        warmlevel = "30"\n    elif (now.hour == 16):\n        warmlevel = "40"\n    elif (now.hour == 17):\n        warmlevel = "50"\n    elif (now.hour == 18):\n        warmlevel = "60"\n    elif (now.hour == 19):\n        warmlevel = "70"\n    elif (now.hour == 20):\n        warmlevel = "80"\n    elif (now.hour == 21):\n        warmlevel = "80"\n    elif (now.hour &gt;= 22):\n        warmlevel = "100"\n    elif (now.hour &lt;= 7):\n        warmlevel = "100"\n    else:\n        warmlevel = "0"\n    print "Based on Time - White Level Set to %s"  % (warmlevel)\n    return warmlevel\n\n\n#Assign Group Number to "x" variable, and if not found, print "No Group Found"\ndef findgroup(x):\n    if "Fan Lights" in SuffSplit:\n        x = "1"\n        print "Found Group 1!"\n    elif "Kitchen Lights" in SuffSplit:\n        x = "2"\n        print "Found Group 2!"\n    elif "Kitchen Floor Lights" in SuffSplit:\n        x = "3"\n        print "Found Group 3!"\n    elif "Oven Lights" in SuffSplit:\n        x = "4"\n        print "Found Group 4!"\n    else:\n        print "NO GROUP MATCH IN EVENT SUFFIX!"\n    return x\n\n\n\n\n#Set warmness of CW/WW bulbs based on time based or user based warmlevel variable.\ndef warmness(warmlevel, white_group):\n    warmnesscommand = "controller.send(light.warmness(%s, %s))" % (warmlevel, white_group)\n    exec warmnesscommand\n    print warmnesscommand\n\n\n\n#Split the event suffix and print the result\nSuffSplit = eg.event.suffix.split(\'.\')    \nprint "Event Suffix is: %s"  % (SuffSplit)\n\n#Print the entire event payload\npayload = eg.event.payload\nprint "Payload is: %s"  % (payload)    \n\n\n#Look inside the suffix for "ST" parameter, if not found Exit program.\nif "ST" in SuffSplit:\n    #Assign Main MiLight variables\n    controller = milight.MiLight({\'host\': \'192.168.31.203\', \'port\': 8899}) #Create a controller with 0 wait between commands\n    light = milight.LightBulb([\'rgbw\', \'white\', \'rgb\'])   #Can specify which types of bulbs to use\n    warmlevel = 0    #Set default warmlevel\n    x = 0    #Set default group\n    white_group = "4" #Set white bulb group\n    white_command = "controller.send(light.white(%s))" % (white_group) #Set white_group to White Type\n    exec white_command\n    \n    warmlevel = time_level(warmlevel) #Set white temperature based on time.\n    x = findgroup(x) #Set Group number.\n    \n    #Look for "On", "Off", "Level", "Color"(includes Disco Modes) to determine what command to execute.\n    if ("on" in SuffSplit and x == \'4\'):\n        warmness(warmlevel, x)\n        print thedatetime\n        \n    elif "on" in SuffSplit:\n        oncommand = "controller.send(light.on(%s))" % (x)\n        exec oncommand\n        print oncommand\n        print thedatetime\n    \n    #Off Command\n    elif "off" in SuffSplit:\n        offcommand = "controller.send(light.off(%s))" % (x)\n        exec offcommand\n        print offcommand\n        print thedatetime\n\n    #If the level is zero for White Group, set Night Mode otherwise set Level.\n    elif "level" in SuffSplit:\n        level = eg.event.payload[0]\n        \n        #Night Mode Command\n        if (x == \'4\' and level == \'0\'):\n            nightcommand = "controller.send(light.night(%s))" % (x)\n            exec nightcommand\n            print nightcommand\n            print thedatetime\n        #Level Command\n        else:\n            levelcommand = "controller.send(light.brightness(%s, %s))" % (level, x)\n            exec levelcommand\n            print levelcommand\n            print thedatetime\n\n    #Set white bulb warmness based on user input\n    elif "whitelevel" in SuffSplit:\n        warmlevel = eg.event.payload[0]\n        warmness(warmlevel, x)\n        print thedatetime\n    #If "color" is in the suffix, convert hex to RGB and send command.\n    elif "color" in SuffSplit:\n        hexcolor = eg.event.payload[0]\n        #Color Command\n        rgbcolor = hex_to_rgb(hexcolor)           #==&gt; (255, 255, 255)\n        print "Hex Color is #%s"   % str(hexcolor)\n        print "RGB Color is %s"   % str(rgbcolor) \n        colorcommand = "controller.send(light.color(milight.color_from_rgb%s, %s))" % (rgbcolor, x)\n        exec colorcommand\n        print colorcommand\n        print thedatetime\n        \n    elif "party" in SuffSplit:\n        #Party Command\n        party = eg.event.payload[0]\n        print party\n        partycommand = "controller.send(light.party(%s, %s))" % (party, x)\n        exec partycommand\n        print partycommand\n        print thedatetime\n    else:\n        print "NOTHING IN SUFFIX!"\n        print thedatetime\nelse:\n    print "ST NOT FOUND IN EVENT SUFFIX!"\n    print thedatetime\n    eg.Exit() \n       \n\n\n\n\n\n\n\n\n\n\n\n\n"""***NOTES***\n\nPARTIES = {\n\'white\': 1,\n\'rainbow_swirl\': 2,\n\'white_fade\': 3,\n\'rgbw_fade\': 4,\n\'rainbow_jump\': 5,\n\'random\': 6,\n\'red_twinkle\': 7,\n\'green_twinkle\': 8,\n\'blue_twinkle\': 9\n}"""    \n"""z = "light.brightness"\nh = "controller.send"\ng = "light.color"\nj = "milight.color_from_rgb"\nk = "light.night"\nb = "set_brightness"\nw = "set_color"\ny = "light.on"\nq = "light.off"\nmycommand = h +"(" + y + "(" + (x) + ")" + ")"\nmycommand = h +"(" + q + "(" + (x) + ")" + ")"\nmycommand = h +"(" + k + "(" + (x) + ")" + ")"\nmycommand = h +"(" + z + "(" + (x) + ")" + ")"\npartycommand = "controller.send(light.party(\'red_twinkle\', +int(x))) \ncontroller.send(light.color(milight.color_from_rgb(*rgbcolor), +int(x)))\ntime.sleep(.10)\n    exec oncommand\n    \n    #Check current time and set warmness level for CW/WW lights.\nif (now.hour() = 13):\n    warmlevel = "10"\nelif (now.hour() = 14):\n    warmlevel = "20"\nelif (now.hour() = 15):\n    warmlevel = "30"\nelif (now.hour() = 16):\n    warmlevel = "40"\nelif (now.hour() = 17):\n    warmlevel = "50"\nelif (now.hour() = 18):\n    warmlevel = "60"\nelif (now.hour() = 19):\n    warmlevel = "70"\nelif (now.hour() = 20):\n    warmlevel = "80"\nelif (now.hour() = 21):\n    warmlevel = "80"\nelif ((now.hour() &gt;= 22 and (now.hour() &lt;= 7))):\n    warmlevel = "100"\nelse:\n    warmlevel = "0"\n    \n"""')
+        </Action>
+    </Macro>
+    <Folder Name="Fan Lights" Enabled="False" Expanded="True">
+        <Macro Name="Fan Lights On" Expanded="True">
+            <Event Name="HTTP.fanlightson" />
+            <Action>
+                miLight2.Power_ON(1, 17, 100)
+            </Action>
+            <Action Name="Old Overall Code">
+                EventGhost.PythonScript(u'import eg\nimport time\nimport milight\nimport ledcontroller\ncontroller = milight.MiLight({\'host\': \'192.168.31.203\', \'port\': 8899}, wait_duration=0) #Create a controller with 0 wait between commands\nlight = milight.LightBulb([\'rgbw\', \'white\', \'rgb\']) #Can specify which types of bulbs to use\nled = ledcontroller.LedController("192.168.31.203")\ncontroller.send(light.white(4))   #Set Group 4 to White Type\nb = "set_brightness"\nw = "set_color"\ny = "on"\nq = "off"\nx = "1"\nz = "led."\nh = "controller.send"\ng = "light.color"\nj = "milight.color_from_rgb"\nk = "light.night"\n\nSuffSplit = eg.event.suffix.split(\'.\')\nprint SuffSplit\n\ndef hex_to_rgb(value):\n        lv = len(value)\n        return tuple(int(value[i:i + lv // 3], 16) for i in range(0, lv, lv // 3))\n\n"""Assign Group Number to "x" variable"""\n\nif "Fan" in SuffSplit:\n    x = "1"\nelif "Kitchen Lights" in SuffSplit:\n    x = "2"\nelif "Kitchen Floor Lights" in SuffSplit:\n    x = "3"\nelif "Oven Lights" in SuffSplit:\n    x = "4"\n\n"""Look for "On", "Off", "Level", "Color", or "Disco Mode" to determine what to change."""\n\nif "on" in SuffSplit:\n    mycommand = z + y +"(" + (x) + ")"\n    exec mycommand\n    print mycommand\nelif "off" in SuffSplit:\n    mycommand = z + q +"(" + (x) + ")"\n    exec mycommand\n    print mycommand\nelif "level" in SuffSplit:\n    level = eg.event.payload[0]\n    if x == 4 and level ==0:  #Group 4 Are White Lights and Level 0 turns on Night Mode\n        mycommand = h +"(" + k + "(" + (x) + ")" + ")"\n        exec mycommand\n    else:\n        mycommand = z + b + "("  +  level +  ", " + x + ")"\n        exec mycommand\n        print mycommand\nif "color" in SuffSplit:\n    hexcolor = eg.event.payload[0]\n    if hexcolor == "Red Alert":\n        controller.send(light.party(\'red_twinkle\', +int(x))) # Set group to party (disco) mode\n    else:\n        rgbcolor = hex_to_rgb(hexcolor)           #==&gt; (255, 255, 255)\n        print hexcolor\n        print rgbcolor\n        controller.send(light.color(milight.color_from_rgb(*rgbcolor), +int(x)))\n        colorcommand = "controller.send(light.color(milight.color_from_rgb%s, %s))" % (rgbcolor, x)\n        print colorcommand\n        time.sleep(.10)\n        exec colorcommand\n\n"""PARTIES = {\n\'white\': 1,\n\'rainbow_swirl\': 2,\n\'white_fade\': 3,\n\'rgbw_fade\': 4,\n\'rainbow_jump\': 5,\n\'random\': 6,\n\'red_twinkle\': 7,\n\'green_twinkle\': 8,\n\'blue_twinkle\': 9\n}"""    ')
+            </Action>
+        </Macro>
+        <Macro Name="Fan Lights Off" Expanded="True">
+            <Event Name="HTTP.fanlightsoff" />
+            <Action>
+                miLight2.Power_OFF(1)
+            </Action>
+        </Macro>
+        <Macro Name="Fan Lights On AM">
+            <Event Name="HTTP.fanlightsam" />
+            <Action>
+                miLight2.Power_ON(1, 17, 1)
+            </Action>
+        </Macro>
+        <Macro Name="Living Room Dimmer Up">
+            <Event Name="HTTP.ST.Living Room Dimmer Switch.button.1.pushed" />
+            <Action>
+                miLight2.Increase_brightness(1, 12)
+            </Action>
+        </Macro>
+        <Macro Name="Living Room Dimmer Down">
+            <Event Name="HTTP.ST.Living Room Dimmer Switch.button.2.pushed" />
+            <Action>
+                miLight2.Decrease_brightness(1, 12)
+            </Action>
+        </Macro>
+        <Macro Name="Living Room Dimmer On" Expanded="True">
+            <Event Name="HTTP.ST.Living Room Dimmer Switch.button.1.held" />
+            <Action>
+                LimitlessLED.TurnOn(100, 0, False, True, True, False, False, False, False, False, False, False)
+            </Action>
+        </Macro>
+        <Macro Name="Living Room Dimmer Off" Expanded="True">
+            <Event Name="HTTP.ST.Living Room Dimmer Switch.button.2.held" />
+            <Action>
+                miLight2.Fade_OUT(1, 2, 2)
+            </Action>
+            <Action>
+                miLight2.Power_OFF(1)
+            </Action>
+        </Macro>
+    </Folder>
+    <Folder Name="Kitchen Lights" Enabled="False">
+        <Macro Name="Kitchen Lights On With Motion" id="40" Expanded="True">
+            <Event Name="HTTP.ST.Motion Sensor In Kitchen.motion.active" />
+            <Action>
+                miLight2.Power_ON(2, 17, 1)
+            </Action>
+            <Action>
+                miLight2.Power_ON(3, 17, 100)
+            </Action>
+        </Macro>
+        <Macro Name="Kitchen Lights Off With No Motion" id="44" Expanded="True">
+            <Event Name="HTTP.ST.Motion Sensor In Kitchen.motion.inactive" />
+            <Action>
+                miLight2.Power_OFF(2)
+            </Action>
+            <Action>
+                LimitlessLED.Dimmer(1, False, True, False, False, True, False, False, False, False, False, 1, False, False)
+            </Action>
+            <Action>
+                EventGhost.EnableItem(XmlIdLink(40))
+            </Action>
+        </Macro>
+        <Macro Name="Kitchen Dimmer On" Expanded="True">
+            <Event Name="HTTP.klightson" />
+            <Action>
+                miLight2.Power_ON(2, 17, 100)
+            </Action>
+            <Action>
+                EventGhost.DisableItem(XmlIdLink(40))
+            </Action>
+            <Action>
+                EventGhost.DisableItem(XmlIdLink(44))
+            </Action>
+        </Macro>
+        <Macro Name="Kitchen Dimmer Off" Expanded="True">
+            <Event Name="HTTP.klightsoff" />
+            <Action>
+                miLight2.Fade_OUT(2, 2, 2)
+            </Action>
+            <Action>
+                miLight2.Power_OFF(2)
+            </Action>
+            <Action>
+                EventGhost.EnableItem(XmlIdLink(40))
+            </Action>
+            <Action>
+                EventGhost.EnableItem(XmlIdLink(44))
+            </Action>
+        </Macro>
+        <Macro Name="Kitchen Dimmer Down">
+            <Event Name="HTTP.ST.Kitchen Dimmer Switch.button.2.pushed" />
+            <Action>
+                miLight2.Decrease_brightness(2, 12)
+            </Action>
+        </Macro>
+        <Macro Name="Kitchen Dimmer Up">
+            <Event Name="HTTP.ST.Kitchen Dimmer Switch.button.1.pushed" />
+            <Action>
+                miLight2.Increase_brightness(2, 12)
+            </Action>
+        </Macro>
+    </Folder>
+    <Folder Name="Kitchen Floor Lights" Enabled="False">
+        <Macro Name="Kitchen Floor Lights On Switch">
+            <Event Name="HTTP.kflooron" />
+            <Action>
+                miLight2.Power_ON(3, 17, 100)
+            </Action>
+        </Macro>
+        <Macro Name="Kitchen Floor Lights Off Switch">
+            <Event Name="HTTP.kflooroff" />
+            <Action>
+                miLight2.Fade_OUT(3, 2, 2)
+            </Action>
+            <Action>
+                miLight2.Power_OFF(3)
+            </Action>
+        </Macro>
+    </Folder>
+    <Macro Name="AmazonEchoRcv: Blackbox Query" Enabled="False" Expanded="True">
+        <Event Name="HTTP.EchoToEG" />
+        <Action>
+            EventGhost.PythonCommand(u'eg.result = None')
+        </Action>
+        <Action Name="Python Script: Set Event to Cmd">
+            EventGhost.PythonScript(u"from datetime import datetime\n\n#Time run test\n#tm_start = datetime.now()\neg.globals.bb_cmd = ''\ncmd = eg.event.payload[0]\n#Test Command\n#cmd = 'master lights on'\ncmd = cmd.strip().lower()\nprint 'BlackBox Command Received: ' + cmd\n\nif cmd != '':\n    eg.globals.bb_cmd = cmd\n    eg.result = True\nelse:\n    eg.result = False\n    print 'cmd is unknown: ' + cmd\n    eg.globals.ibl1_ttl = 'BlackBox'\n    eg.globals.ibl1_msg = 'Command Empty'\n\n#eg.event.payload.arcomm = ''\n#tm_end = datetime.now()\n#tm_diff = tm_end - tm_start\n#print tm_diff\n")
+        </Action>
+        <Action>
+            EventGhost.NewJumpIf(XmlIdLink(-1), 0, True)
+        </Action>
+        <Action>
+            Webserver.SetValue(u'bb_response', u'{eg.globals.ibl1_msg}', False, False)
+        </Action>
+    </Macro>
+    <Folder Name="Webserver" Expanded="True">
+        <Macro Name="Send event to another EventGhost">
+            <Action>
+                Webserver.SendEvent()
+            </Action>
+        </Macro>
+        <Macro Name="Send event to another webserver">
+            <Action>
+                Webserver.SendEventExt()
+            </Action>
+        </Macro>
+        <Folder Name="Variable actions">
+            <Macro Name="Get temporary value">
+                <Action>
+                    Webserver.GetValue()
+                </Action>
+            </Macro>
+            <Macro Name="Get persistent value">
+                <Action>
+                    Webserver.GetPersistentValue()
+                </Action>
+            </Macro>
+            <Macro Name="Set temporary value">
+                <Action>
+                    Webserver.SetValue()
+                </Action>
+            </Macro>
+            <Macro Name="Set persistent value">
+                <Action>
+                    Webserver.SetPersistentValue()
+                </Action>
+            </Macro>
+            <Macro Name="Set clients flags">
+                <Action>
+                    Webserver.SetClientsFlags()
+                </Action>
+            </Macro>
+        </Folder>
+        <Folder Name="Websocket actions server-client">
+            <Macro Name="Broadcast message">
+                <Action>
+                    Webserver.BroadcastMessage()
+                </Action>
+            </Macro>
+            <Macro Name="Broadcast values">
+                <Action>
+                    Webserver.BroadcastValue()
+                </Action>
+            </Macro>
+            <Macro Name="Broadcast all values">
+                <Action>
+                    Webserver.BroadcastAllValues()
+                </Action>
+            </Macro>
+            <Macro Name="Broadcast data">
+                <Action>
+                    Webserver.WsBroadcastData()
+                </Action>
+            </Macro>
+            <Macro Name="Broadcast command">
+                <Action>
+                    Webserver.WsBroadcastCmd()
+                </Action>
+            </Macro>
+            <Macro Name="Broadcast universal packet">
+                <Action>
+                    Webserver.WsBroadcastUniversal()
+                </Action>
+            </Macro>
+            <Macro Name="Send message">
+                <Action>
+                    Webserver.SendMessage()
+                </Action>
+            </Macro>
+            <Macro Name="Send values">
+                <Action>
+                    Webserver.SendValue()
+                </Action>
+            </Macro>
+            <Macro Name="Send all values">
+                <Action>
+                    Webserver.SendAllValues()
+                </Action>
+            </Macro>
+            <Macro Name="Send data">
+                <Action>
+                    Webserver.WsSendData()
+                </Action>
+            </Macro>
+            <Macro Name="Send command">
+                <Action>
+                    Webserver.WsSendCmd()
+                </Action>
+            </Macro>
+            <Macro Name="Send universal packet">
+                <Action>
+                    Webserver.WsSendUniversal()
+                </Action>
+            </Macro>
+            <Folder Name="Periodically repeated actions">
+                <Macro Name="Periodically broadcast data">
+                    <Action>
+                        Webserver.WsPeriodicallyBroadcastData()
+                    </Action>
+                </Macro>
+                <Macro Name="Periodically broadcast command">
+                    <Action>
+                        Webserver.WsPeriodicallyBroadcastCmd()
+                    </Action>
+                </Macro>
+                <Macro Name="Periodically broadcast universal packet">
+                    <Action>
+                        Webserver.WsPeriodicallyBroadcastUniversal()
+                    </Action>
+                </Macro>
+                <Macro Name="Periodically send data">
+                    <Action>
+                        Webserver.WsPeriodicallySendData()
+                    </Action>
+                </Macro>
+                <Macro Name="Periodically send command">
+                    <Action>
+                        Webserver.WsPeriodicallySendCmd()
+                    </Action>
+                </Macro>
+                <Macro Name="Periodically send universal packet">
+                    <Action>
+                        Webserver.WsPeriodicallySendUniversal()
+                    </Action>
+                </Macro>
+                <Macro Name="Stop all periodic tasks">
+                    <Action>
+                        Webserver.WsStopAllPeriodicTasks()
+                    </Action>
+                </Macro>
+                <Macro Name="Stop periodic tasks (broadcast)">
+                    <Action>
+                        Webserver.WsStopBroadcastPeriodicTasks()
+                    </Action>
+                </Macro>
+                <Macro Name="Stop periodic tasks (one client)">
+                    <Action>
+                        Webserver.WsStopClientPeriodicTasks()
+                    </Action>
+                </Macro>
+            </Folder>
+        </Folder>
+        <Folder Name="Websocket actions client-server">
+            <Macro Name="Start client">
+                <Action>
+                    Webserver.StartClient()
+                </Action>
+            </Macro>
+            <Macro Name="Stop client">
+                <Action>
+                    Webserver.StopClient()
+                </Action>
+            </Macro>
+            <Macro Name="Stop all clients">
+                <Action>
+                    Webserver.StopAllClients()
+                </Action>
+            </Macro>
+            <Macro Name="Send message to server">
+                <Action>
+                    Webserver.ClSendMessage()
+                </Action>
+            </Macro>
+            <Macro Name="Send values to server">
+                <Action>
+                    Webserver.ClSendValue()
+                </Action>
+            </Macro>
+            <Macro Name="Send all values to server">
+                <Action>
+                    Webserver.ClSendAllValues()
+                </Action>
+            </Macro>
+            <Macro Name="Send data to server">
+                <Action>
+                    Webserver.ClSendData()
+                </Action>
+            </Macro>
+            <Macro Name="Send command to server">
+                <Action>
+                    Webserver.ClSendCmd()
+                </Action>
+            </Macro>
+            <Macro Name="Send universal packet to server">
+                <Action>
+                    Webserver.ClSendUniversal()
+                </Action>
+            </Macro>
+        </Folder>
+    </Folder>
+    <Folder Name="VLC media player">
+        <Macro Name="Start" Expanded="True">
+            <Action>
+                VLC.Start()
+            </Action>
+        </Macro>
+        <Macro Name="Quit">
+            <Action>
+                VLC.Quit()
+            </Action>
+        </Macro>
+        <Macro Name="Play">
+            <Action>
+                VLC.Play()
+            </Action>
+        </Macro>
+        <Macro Name="Pause">
+            <Action>
+                VLC.Pause()
+            </Action>
+        </Macro>
+        <Macro Name="Stop" Expanded="True">
+            <Action>
+                VLC.Stop()
+            </Action>
+        </Macro>
+        <Macro Name="Fast Forward">
+            <Action>
+                VLC.FastForward()
+            </Action>
+        </Macro>
+        <Macro Name="Fast Rewind">
+            <Action>
+                VLC.FastRewind()
+            </Action>
+        </Macro>
+        <Macro Name="Play Faster">
+            <Action>
+                VLC.PlayFaster()
+            </Action>
+        </Macro>
+        <Macro Name="Play Slower">
+            <Action>
+                VLC.PlaySlower()
+            </Action>
+        </Macro>
+        <Macro Name="Play Normal">
+            <Action>
+                VLC.PlayNormal()
+            </Action>
+        </Macro>
+        <Macro Name="Seek">
+            <Action>
+                VLC.Seek()
+            </Action>
+        </Macro>
+        <Macro Name="Fullscreen">
+            <Action>
+                VLC.Fullscreen()
+            </Action>
+        </Macro>
+        <Macro Name="Next Playlist Item">
+            <Action>
+                VLC.NextPlaylistItem()
+            </Action>
+        </Macro>
+        <Macro Name="Previous Playlist Item">
+            <Action>
+                VLC.PreviousPlaylistItem()
+            </Action>
+        </Macro>
+        <Macro Name="Next Title">
+            <Action>
+                VLC.NextTitle()
+            </Action>
+        </Macro>
+        <Macro Name="Previous Title">
+            <Action>
+                VLC.PreviousTitle()
+            </Action>
+        </Macro>
+        <Macro Name="Next Chapter">
+            <Action>
+                VLC.NextChapter()
+            </Action>
+        </Macro>
+        <Macro Name="Previous Chapter">
+            <Action>
+                VLC.PreviousChapter()
+            </Action>
+        </Macro>
+        <Macro Name="Current Playlist Status">
+            <Action>
+                VLC.CurrentPlaylistStatus()
+            </Action>
+        </Macro>
+        <Macro Name="Stream Info">
+            <Action>
+                VLC.StreamInfo()
+            </Action>
+        </Macro>
+        <Macro Name="Show Playlist">
+            <Action>
+                VLC.ShowPlaylist()
+            </Action>
+        </Macro>
+        <Macro Name="Clear Playlist">
+            <Action>
+                VLC.ClearPlaylist()
+            </Action>
+        </Macro>
+        <Macro Name="Volume Up">
+            <Action>
+                VLC.VolumeUp()
+            </Action>
+        </Macro>
+        <Macro Name="Volume Down">
+            <Action>
+                VLC.VolumeDown()
+            </Action>
+        </Macro>
+        <Macro Name="My Command">
+            <Action>
+                VLC.MyCommand()
+            </Action>
+        </Macro>
+        <Macro Name="Simulate hotkey press">
+            <Action>
+                VLC.SimulateKey()
+            </Action>
+        </Macro>
+        <Macro Name="Get list of hotkeys">
+            <Action>
+                VLC.GetHotkeys()
+            </Action>
+        </Macro>
+        <Macro Name="Get some info">
+            <Action>
+                VLC.GetSomeInfo()
+            </Action>
+        </Macro>
+        <Macro Name="Get time">
+            <Action>
+                VLC.GetTime()
+            </Action>
+        </Macro>
+        <Macro Name="Get length">
+            <Action>
+                VLC.GetLength()
+            </Action>
+        </Macro>
+        <Macro Name="Next audiotrack">
+            <Action>
+                VLC.NextAtrack()
+            </Action>
+        </Macro>
+        <Macro Name="Previous audiotrack">
+            <Action>
+                VLC.PreviousAtrack()
+            </Action>
+        </Macro>
+        <Macro Name="Next subtitles">
+            <Action>
+                VLC.NextStrack()
+            </Action>
+        </Macro>
+        <Macro Name="Previous subtitles">
+            <Action>
+                VLC.PreviousStrack()
+            </Action>
+        </Macro>
+        <Macro Name="Help">
+            <Action>
+                VLC.Help()
+            </Action>
+        </Macro>
+        <Folder Name="DVD menu control">
+            <Macro Name="Go to the DVD menu">
+                <Action>
+                    VLC.KeyDiscMenu()
+                </Action>
+            </Macro>
+            <Macro Name="Navigate up">
+                <Action>
+                    VLC.KeyNavUp()
+                </Action>
+            </Macro>
+            <Macro Name="Navigate down">
+                <Action>
+                    VLC.KeyNavDown()
+                </Action>
+            </Macro>
+            <Macro Name="Navigate left">
+                <Action>
+                    VLC.KeyNavLeft()
+                </Action>
+            </Macro>
+            <Macro Name="Navigate right">
+                <Action>
+                    VLC.KeyNavRight()
+                </Action>
+            </Macro>
+            <Macro Name="Activate">
+                <Action>
+                    VLC.KeyNavActivate()
+                </Action>
+            </Macro>
+        </Folder>
+    </Folder>
+</EventGhost>
